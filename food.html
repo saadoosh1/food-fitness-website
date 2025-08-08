@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Food Sharing – Food & Fitness</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <nav>
+      <a href="index.html" class="logo">Food & Fitness</a>
+      <ul>
+        <li><a href="food.html" aria-current="page">Food Sharing</a></li>
+        <li><a href="fitness.html">Fitness</a></li>
+        <li><a href="sports.html">Sports</a></li>
+        <li><a href="health.html">Health</a></li>
+      </ul>
+    </nav>
+
+    <section class="content-section">
+      <h2>Food Sharing</h2>
+      <p>
+        Welcome to the Food Sharing community! Here you can share your
+        favourite meals with others and discover new dishes to try. Submit
+        your meal below along with a description and see it appear in the
+        shared meals list.
+      </p>
+    </section>
+
+    <section class="meal-form">
+      <h2>Share a Meal</h2>
+      <form id="mealForm">
+        <label for="mealName">Meal Name</label>
+        <input type="text" id="mealName" name="mealName" required />
+
+        <label for="mealDescription">Description</label>
+        <textarea
+          id="mealDescription"
+          name="mealDescription"
+          rows="4"
+          required
+        ></textarea>
+
+        <button type="submit">Share Meal</button>
+      </form>
+    </section>
+
+    <section class="meal-list" id="mealList">
+      <!-- Meals will be rendered here by script.js -->
+    </section>
+
+    <script src="script.js"></script>
+  </body>
+</html>
