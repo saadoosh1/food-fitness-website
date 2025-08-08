@@ -6,33 +6,26 @@
 
 // Wait for the DOM to load before attaching event handlers
 document.addEventListener('DOMContentLoaded', () => {
+  // Food sharing functionality should only run on the food page. Safely
+  // reference the form and meal list; if they aren't present, skip these
+  // handlers.
   const form = document.getElementById('mealForm');
   const mealListContainer = document.getElementById('mealList');
 
-  /**
-   * Retrieve the list of meals from localStorage. If none exist, return
-   * an empty array.
-   * @returns {Array<Object>} Array of meal objects with `name` and `description`
-   */
+  // Functions to manage shared meals in localStorage
   function getMeals() {
     const stored = localStorage.getItem('sharedMeals');
     return stored ? JSON.parse(stored) : [];
   }
 
-  /**
-   * Persist the list of meals to localStorage.
-   * @param {Array<Object>} meals - Array of meal objects
-   */
   function saveMeals(meals) {
     localStorage.setItem('sharedMeals', JSON.stringify(meals));
   }
 
-  /**
-   * Render the list of meals into the DOM.
-   */
   function renderMeals() {
     const meals = getMeals();
-    // Clear existing list
+    // If the mealListContainer doesn't exist (i.e. not the food page), exit early
+    if (!mealListContainer) return;
     mealListContainer.innerHTML = '';
     if (meals.length === 0) {
       const empty = document.createElement('p');
@@ -54,25 +47,88 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Handle form submission
-  form.addEventListener('submit', event => {
-    event.preventDefault();
-    const nameInput = document.getElementById('mealName');
-    const descInput = document.getElementById('mealDescription');
-    const name = nameInput.value.trim();
-    const description = descInput.value.trim();
-    if (!name || !description) {
-      alert('Please provide both a name and a description for the meal.');
-      return;
-    }
-    const meals = getMeals();
-    meals.push({ name, description });
-    saveMeals(meals);
-    nameInput.value = '';
-    descInput.value = '';
+  // Attach event handler only if form exists (food page)
+  if (form) {
+    form.addEventListener('submit', event => {
+      event.preventDefault();
+      const nameInput = document.getElementById('mealName');
+      const descInput = document.getElementById('mealDescription');
+      const name = nameInput.value.trim();
+      const description = descInput.value.trim();
+      if (!name || !description) {
+        alert('Please provide both a name and a description for the meal.');
+        return;
+      }
+      const meals = getMeals();
+      meals.push({ name, description });
+      saveMeals(meals);
+      nameInput.value = '';
+      descInput.value = '';
+      renderMeals();
+    });
+    // Render existing meals when loading the food page
     renderMeals();
-  });
+  }
 
-  // Initial render
-  renderMeals();
+  /*
+   * News loading functionality
+   * Fetches RSS feeds via the rss2json API and renders the latest items
+   * for each section. Each page includes a UL element with an ID
+   * corresponding to the category (e.g. 'health-news', 'food-news', etc.).
+   */
+  async function loadNews(category) {
+    let feedUrl;
+    switch (category) {
+      case 'health':
+        feedUrl = 'https://api.rss2json.com/v1/api.json?rss_url=https://www.sciencedaily.com/rss/top/health.xml';
+        break;
+      case 'food':
+        feedUrl = 'https://api.rss2json.com/v1/api.json?rss_url=https://www.sciencedaily.com/rss/health_medicine/nutrition.xml';
+        break;
+      case 'fitness':
+        feedUrl = 'https://api.rss2json.com/v1/api.json?rss_url=https://www.sciencedaily.com/rss/health_medicine/fitness.xml';
+        break;
+      case 'sports':
+        feedUrl = 'https://api.rss2json.com/v1/api.json?rss_url=https://www.sciencedaily.com/rss/health_medicine/sports_medicine.xml';
+        break;
+      default:
+        return;
+    }
+    try {
+      const response = await fetch(feedUrl);
+      const data = await response.json();
+      const listId = `${category}-news`;
+      const container = document.getElementById(listId);
+      if (!container || !data.items) return;
+      // Clear current items
+      container.innerHTML = '';
+      // Show up to 3 latest articles
+      data.items.slice(0, 3).forEach(item => {
+        const li = document.createElement('li');
+        const link = document.createElement('a');
+        link.href = item.link;
+        link.target = '_blank';
+        link.rel = 'noopener noreferrer';
+        link.textContent = item.title;
+        li.appendChild(link);
+        container.appendChild(li);
+      });
+    } catch (err) {
+      console.error('Failed to load news feed:', err);
+    }
+  }
+
+  // Determine which news sections exist on the current page and load them
+  if (document.getElementById('health-news')) {
+    loadNews('health');
+  }
+  if (document.getElementById('food-news')) {
+    loadNews('food');
+  }
+  if (document.getElementById('fitness-news')) {
+    loadNews('fitness');
+  }
+  if (document.getElementById('sports-news')) {
+    loadNews('sports');
+  }
 });
