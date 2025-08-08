@@ -102,15 +102,19 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!container || !data.items) return;
       // Clear current items
       container.innerHTML = '';
-      // Show up to 3 latest articles
+      // Show up to 3 latest articles with descriptions
       data.items.slice(0, 3).forEach(item => {
         const li = document.createElement('li');
-        const link = document.createElement('a');
-        link.href = item.link;
-        link.target = '_blank';
-        link.rel = 'noopener noreferrer';
-        link.textContent = item.title;
-        li.appendChild(link);
+        // Title element
+        const titleEl = document.createElement('strong');
+        titleEl.textContent = item.title;
+        li.appendChild(titleEl);
+        // Extract plain text from description or content
+        const tmp = document.createElement('div');
+        tmp.innerHTML = item.description || item.content || item.contentSnippet || '';
+        const descEl = document.createElement('p');
+        descEl.textContent = tmp.textContent || '';
+        li.appendChild(descEl);
         container.appendChild(li);
       });
     } catch (err) {
